@@ -133,7 +133,8 @@ class BaseConfig:
     model_config: ModelConfig
     disable_sys_prompt: Optional[bool] = False
 
-    key: Optional[str] = None  # OpenAI API Key or Huggingface Secret
+    # OpenAI API Key (or) Huggingface Secret (or) Together AI API Key
+    key: Optional[str] = ""
     dry_run: bool = False
 
     advglue: Optional[AdvGLUEConfig] = None
@@ -164,7 +165,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
     toxicity = None
 
     if perspectives.get("stereotype", None) is not None:
-        config_from_yaml = load_config("stereotype_config.yaml")
+        config_from_yaml = load_config("configs/stereotype_config.yaml")
         if config_from_yaml:
             stereotype = StereotypeConfig(skip_generation=config_from_yaml.get("skip_generation", False),
                                           sys_prompt_type=config_from_yaml.get("sys_prompt_type", "targeted"),
@@ -172,7 +173,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                           out_dir=config_from_yaml.get("out_dir", None))
 
     if perspectives.get("advglue", None) is not None:
-        config_from_yaml = load_config("advglue_config.yaml")
+        config_from_yaml = load_config("configs/advglue_config.yaml")
         if config_from_yaml:
             advglue = AdvGLUEConfig(sys=config_from_yaml.get("sys", False),
                                     demo=config_from_yaml.get("demo", False),
@@ -185,7 +186,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                     task=config_from_yaml.get("task", field(default_factory=list)))
 
     if perspectives.get("toxicity", None) is not None:
-        config_from_yaml = load_config("toxicity_config.yaml")
+        config_from_yaml = load_config("configs/toxicity_config.yaml")
         if config_from_yaml:
             toxicity = ToxicityConfig(data_file=config_from_yaml.get("data_file", None),
                                       out_file=config_from_yaml.get("out_file", None),
@@ -197,7 +198,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                       api=config_from_yaml.get("api", None))
 
     if perspectives.get("fairness", None) is not None:
-        config_from_yaml = load_config("fairness_config.yaml")
+        config_from_yaml = load_config("configs/fairness_config.yaml")
         if config_from_yaml:
             fairness = FairnessConfig(data_dir=config_from_yaml.get("data_dir", None),
                                       prompt_file=config_from_yaml.get("prompt_file", None),
@@ -209,7 +210,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                       max_tokens=config_from_yaml.get("max_tokens", 20))
 
     if perspectives.get("privacy", None) is not None:
-        config_from_yaml = load_config("privacy_config.yaml")
+        config_from_yaml = load_config("configs/privacy_config.yaml")
         if config_from_yaml:
             privacy = PrivacyConfig(scenario_name=config_from_yaml.get("scenario_name", None),
                                     data_file=config_from_yaml.get("data_file", None),
@@ -228,7 +229,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                     privacy_topics=config_from_yaml.get("privacy_topics", field(default_factory=list)))
 
     if perspectives.get("machine_ethics", None) is not None:
-        config_from_yaml = load_config("machine_ethics_config.yaml")
+        config_from_yaml = load_config("configs/machine_ethics_config.yaml")
         if config_from_yaml:
             machine_ethics = EthicsConfig(data_name=config_from_yaml.get("data_name", None),
                                           test_data_file=config_from_yaml.get("test_data_file", None),
@@ -239,7 +240,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                           jailbreak_prompt=config_from_yaml.get("jailbreak_prompt", 0),
                                           evasive_sentence=config_from_yaml.get("evasive_sentence", 0))
 
-    config_from_yaml = load_config("model_config.yaml")
+    config_from_yaml = load_config("configs/model_config.yaml")
     if config_from_yaml:
         model_config = ModelConfig(model=config_from_yaml.get("model", "openai/gpt-3.5-turbo-0301"),
                                    type=config_from_yaml.get("type", ModelType.CHAT),

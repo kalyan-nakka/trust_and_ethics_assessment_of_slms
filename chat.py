@@ -11,10 +11,14 @@ from transformers import AutoTokenizer
 from conversation import get_conv_template
 from configs.template_config.chat_template import get_chat_template
 from configs.configs import BaseConfig
+
+from helm.common.cache import SqliteCacheConfig
 from helm.proxy.clients.auto_client import AutoClient
 from helm.proxy.clients.huggingface_model_registry import HuggingfaceModelQuantizationConfig
-from helm.proxy.clients.huggingface_model_registry import ModelLoader, WeightType
+from helm.proxy.clients.huggingface_model_registry import ModelLoader
+
 from response import Response
+from together_ai_client import TogetherAIClient
 
 
 class Chat(ABC):
@@ -512,17 +516,24 @@ class HFChat(Chat):
         return response.to_dict()
 
 
-# TODO: Change to inherit from OpenAIChat
 class TogetherChat(Chat):
     def __init__(self, model_name: str, conv_template: str, cache: str, api_key: str, disable_sys_prompt: bool = False, **kwargs):
         super().__init__(model_name, model_type=kwargs.get("model_type", "chat"), prompt_price=0, completion_price=0)
 
-        self.client = AutoClient(credentials={"togetherApiKey": api_key}, cache_path=cache)
+        self.disable_sys_prompt = disable_sys_prompt
+
+        # INFO: (1) Use TogetherAIClient from together_ai_client.py
+        #       (2) Build Cache Config for  TogetherAIClient
+        organization: str = model_name.split("/")[0]
+        cache_path: str = os.path.join(cache, f"{organization}.sqlite")
+        self.client = TogetherAIClient(cache_config=SqliteCacheConfig(cache_path), api_key=api_key)
+
+        # Get conversation template
         self.conv_template = get_conv_template(conv_template)
 
+        # Register the Model
         from helm.proxy.clients.together_client import register_custom_together_model
-        self.model_name = register_custom_together_model(model_name).name
-        self.disable_sys_prompt = disable_sys_prompt
+        register_custom_together_model(model_name)
 
     # TODO: Refactor to remove duplications
     def messages_to_prompt(self, messages: Union[List[Dict], str]):
@@ -548,23 +559,55 @@ class TogetherChat(Chat):
         conv.append_message(conv.roles[1], None)
         return conv.get_prompt()  # Prompt generated from the selected template
 
+    def concat_messages(self, messages: Union[List[Dict], str]):
+        chat = []
+        previous_role = ''
+        for message in messages:
+            if "name" in message:
+                warnings.warn("'name' argument is not supported.")
+            msg_role = message["role"]
+            if msg_role == "system":
+                chat.append(message)
+            elif msg_role == "user" or msg_role == "assistant":
+                if msg_role == previous_role:
+                    chat[-1]["content"] += message["content"]
+                else:
+                    chat.append({"role": msg_role, "content": message["content"]})
+                previous_role = msg_role
+            else:
+                raise ValueError(f"Unknown role: {msg_role}")
+        return chat
+
     @timeout(600)
     def _call(self, messages, t=0, max_tokens=20, n=1):
-        prompt = self.messages_to_prompt(messages)
-
+        messages_for_request = self.concat_messages(messages)
         kwargs = {
-            "stop_sequences": ["</s>", "[/INST]", "[INST]"], "echo_prompt": False, "top_p": 0.7, "top_k_per_token": 50
+            "stop_sequences": ["</s>", "[/INST]", "[INST]"], 
+            "echo_prompt": False, 
+            "top_p": 0.7, 
+            "top_k_per_token": 50,
+            "temperature": t,
+            "model": self.model_name,
+            "num_completions": n,
+            "max_tokens": max_tokens,
         }
-        # kwargs["repetition_penalty"] = 1
-        request = Request(
-            model=self.model_name, prompt=prompt, num_completions=n, max_tokens=max_tokens, temperature=t, **kwargs
-        )
+
+        if self.model_name.startswith("together/phi-2"):
+            # Completion model
+            kwargs["prompt"] = messages_for_request
+        else:
+            # Chat model
+            kwargs["messages"] = messages_for_request
+
+            # Create Request object using kwargs
+        request = Request(**kwargs)
+
+        # Make the request to LLM using the Together AI's client
         response = self.client.make_request(request)
 
         if not response.success:
             raise RuntimeError(f"Call to together model {self.model_name} failed!")
 
-        # TODO: Refactor with pydantic
         response = Response.from_dict({
             "id": f"chatcmpl-{shortuuid.random()}",
             "object": "chat.completion",
@@ -581,10 +624,10 @@ class TogetherChat(Chat):
                 }
                 for i, msg in enumerate(response.completions)
             ],
-            "usage": {  # Not implemented for now
-                "prompt_tokens": 0,
-                "completion_tokens": 0,
-                "total_tokens": 0
+            "usage": {
+                "prompt_tokens": response.raw_response.get("usage").get("prompt_tokens", 0),
+                "completion_tokens": response.raw_response.get("usage").get("completion_tokens", 0),
+                "total_tokens": response.raw_response.get("usage").get("total_tokens", 0)
             }
         })
         return response.to_dict()

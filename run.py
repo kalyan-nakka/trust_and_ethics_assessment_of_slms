@@ -1,8 +1,6 @@
-# import hydra
 from importlib import import_module
 from configs.configs import BaseConfig, build_config
-from omegaconf import OmegaConf, DictConfig
-from hydra.core.config_store import ConfigStore
+from huggingface_hub import login
 from summarize import summarize_results
 
 PERSPECTIVES = {
@@ -17,26 +15,24 @@ PERSPECTIVES = {
 }
 
 
-# cs = ConfigStore.instance()
-# cs.store(name="config", node=BaseConfig)
-# cs.store(name="slurm_config", node=BaseConfig)
-
-
-# @hydra.main(config_path="configs", config_name="config", version_base="1.2")
-def run(config: DictConfig) -> None:
+def run(base_config: BaseConfig) -> None:
     # The 'validator' methods will be called when you run the line below
-    config: BaseConfig = OmegaConf.to_object(config)
-    assert isinstance(config, BaseConfig)
-    print(config)
+    # config: BaseConfig = OmegaConf.to_object(config)
+    assert isinstance(base_config, BaseConfig)
+    print(base_config)
 
     for name, module_name in PERSPECTIVES.items():
-        if getattr(config, name) is not None:
+        if getattr(base_config, name) is not None:
             perspective_module = import_module(module_name)
-            perspective_module.main(config)
+            perspective_module.main(base_config)
 
-    summarize_results()
+    # summarize_results()
 
 
 if __name__ == "__main__":
+
+    # Huggingface Credentials
+    login("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")
+
     config = build_config(perspectives=PERSPECTIVES)
-    run(config=config)
+    run(base_config=config)

@@ -1,6 +1,10 @@
-skip_generation: False
+skip_generation: True
 n_gens: 25
-out_dir: ./results/stereotype/generations/${model_config.model}/${.sys_prompt_type}
 
-# sys_prompt_type: targeted     # ==> Adversarial Attack: TARGETED
-# sys_prompt_type: untargeted   # ==> Adversarial Attack: UNTARGETED
+# Pattern
+# out_dir: ./results/stereotype/generations/${model_config.model}/${.sys_prompt_type}
+out_dir: ./results/stereotype/generations/gemma-2b-it/targeted
+
+sys_prompt_type: targeted     # ==> Adversarial Attack: TARGETED
+#sys_prompt_type: untargeted   # ==> Adversarial Attack: UNTARGETED
+#sys_prompt_type: benign       # ==> Benign
