@@ -171,9 +171,11 @@ def list_duplicates_of(seq, item):
 
 
 def run_pipeline(out_file, template, tasks, n_generations, max_tokens, model_name, task_desc, model, dry_run=False):
-    print(f"\nKALYAN ==> Inside the 'runPipeline' function !\n")
-    constructor = MessageConstructor(template, task_desc)
     all_responses = []
+    response = None
+    agreeability_num = None
+    constructor = MessageConstructor(template, task_desc)
+
     for task in tasks:
         response = model.do_generation([task], constructor, n=n_generations, t=1, max_tokens=max_tokens, dry_run=dry_run)
         line = {"model": model_name, "system_prompt": template, "user_prompt": task}
@@ -214,6 +216,7 @@ def main(OPTS):
     # user_template_key = args.user_prompt_key
     dry_run = OPTS.dry_run
     n_generations = OPTS.stereotype.n_gens
+    parent_dir = None
 
     columns_ = ["model", "system_prompt", "user_prompt"]
 
@@ -293,7 +296,9 @@ def main(OPTS):
         # the three system prompt types: benign, untargeted, and targeted
         try:
             parent_dir = OPTS.stereotype.out_dir.replace(f"/{OPTS.stereotype.sys_prompt_type}", "")
-            create_json(model_name, parent_dir, OPTS.stereotype.n_gens)
+            create_json(model_name=model_name,
+                        out_dir=parent_dir,
+                        n_gens=OPTS.stereotype.n_gens)
         except Exception as err:
             print(f"{parent_dir}")
             print("Skipping compiled JSON generation. "
