@@ -111,7 +111,7 @@ def main(args):
                 dataset, gt_list = get_pii_messages_k_shot(filename=args.privacy.data_file,
                                                            k=args.privacy.few_shot_num,
                                                            pp=pii,
-                                                           fewshot_type=few_shot_type,
+                                                           few_shot_type=few_shot_type,
                                                            num_cases=dataset_size)
 
                 result_dir = ScenarioName2ResultDir[args.privacy.scenario_name]

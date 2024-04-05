@@ -45,3 +45,16 @@ use_auth_token: true
 #tokenizer_name: null
 #trust_remote_code: true
 #use_auth_token: true
+
+
+## Model Config for PHI-2
+#model: "together/phi-2"
+#type: CHAT
+#conv_template: "phi-2"
+#
+#model_loader: HF
+#torch_dtype: BFLOAT16
+#quant_file: null
+#tokenizer_name: null
+#trust_remote_code: true
+#use_auth_token: true

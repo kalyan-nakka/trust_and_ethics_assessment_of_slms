@@ -517,7 +517,12 @@ class HFChat(Chat):
 
 
 class TogetherChat(Chat):
-    def __init__(self, model_name: str, conv_template: str, cache: str, api_key: str, disable_sys_prompt: bool = False, **kwargs):
+    def __init__(self,
+                 model_name: str,
+                 conv_template: str,
+                 cache: str, api_key: str,
+                 disable_sys_prompt: bool = False,
+                 **kwargs):
         super().__init__(model_name, model_type=kwargs.get("model_type", "chat"), prompt_price=0, completion_price=0)
 
         self.disable_sys_prompt = disable_sys_prompt
@@ -528,59 +533,68 @@ class TogetherChat(Chat):
         cache_path: str = os.path.join(cache, f"{organization}.sqlite")
         self.client = TogetherAIClient(cache_config=SqliteCacheConfig(cache_path), api_key=api_key)
 
-        # Get conversation template
-        self.conv_template = get_conv_template(conv_template)
+        # # Get conversation template
+        # self.conv_template = get_conv_template(conv_template)
 
         # Register the Model
         from helm.proxy.clients.together_client import register_custom_together_model
         register_custom_together_model(model_name)
 
-    # TODO: Refactor to remove duplications
-    def messages_to_prompt(self, messages: Union[List[Dict], str]):
-        if isinstance(messages, str):
-            return messages  # Override prompt templates / simply use as the prompt for completion model
-
-        conv = self.conv_template.copy()
-        for message in messages:
-            if "name" in message:
-                warnings.warn("'name' argument is not supported.")
-            msg_role = message["role"]
-            if msg_role == "system":
-                if self.disable_sys_prompt:
-                    warnings.warn("User system prompt ignored! Using default system prompt instead.")
-                else:
-                    conv.system = message["content"]
-            elif msg_role == "user":
-                conv.append_message(conv.roles[0], message["content"])
-            elif msg_role == "assistant":
-                conv.append_message(conv.roles[1], message["content"])
-            else:
-                raise ValueError(f"Unknown role: {msg_role}")
-        conv.append_message(conv.roles[1], None)
-        return conv.get_prompt()  # Prompt generated from the selected template
-
-    def concat_messages(self, messages: Union[List[Dict], str]):
-        chat = []
-        previous_role = ''
-        for message in messages:
-            if "name" in message:
-                warnings.warn("'name' argument is not supported.")
-            msg_role = message["role"]
-            if msg_role == "system":
-                chat.append(message)
-            elif msg_role == "user" or msg_role == "assistant":
-                if msg_role == previous_role:
-                    chat[-1]["content"] += message["content"]
-                else:
-                    chat.append({"role": msg_role, "content": message["content"]})
-                previous_role = msg_role
-            else:
-                raise ValueError(f"Unknown role: {msg_role}")
-        return chat
+    # def messages_to_prompt(self, messages: Union[List[Dict], str]):
+    #     if isinstance(messages, str):
+    #         return messages  # Override prompt templates / simply use as the prompt for completion model
+    #
+    #     conv = self.conv_template.copy()
+    #     for message in messages:
+    #         if "name" in message:
+    #             warnings.warn("'name' argument is not supported.")
+    #         msg_role = message["role"]
+    #         if msg_role == "system":
+    #             if self.disable_sys_prompt:
+    #                 warnings.warn("User system prompt ignored! Using default system prompt instead.")
+    #             else:
+    #                 conv.system = message["content"]
+    #         elif msg_role == "user":
+    #             conv.append_message(conv.roles[0], message["content"])
+    #         elif msg_role == "assistant":
+    #             conv.append_message(conv.roles[1], message["content"])
+    #         else:
+    #             raise ValueError(f"Unknown role: {msg_role}")
+    #     conv.append_message(conv.roles[1], None)
+    #     return conv.get_prompt()  # Prompt generated from the selected template
 
     @timeout(600)
     def _call(self, messages, t=0, max_tokens=20, n=1):
-        messages_for_request = self.concat_messages(messages)
+
+        def concat_messages(model_type: str, messages_list: Union[List[Dict], str]):
+            if model_type == "CHAT":
+                chat = []
+                previous_role = ''
+                for message in messages_list:
+                    if "name" in message:
+                        warnings.warn("'name' argument is not supported.")
+                    msg_role = message["role"]
+                    if msg_role == "system":
+                        chat.append(message)
+                    elif msg_role == "user" or msg_role == "assistant":
+                        if msg_role == previous_role:
+                            chat[-1]["content"] += message["content"]
+                        else:
+                            chat.append({"role": msg_role, "content": message["content"]})
+                        previous_role = msg_role
+                    else:
+                        raise ValueError(f"Unknown role: {msg_role}")
+                return chat
+
+            else:
+                prompt = ""
+                for index, message in enumerate(messages_list):
+                    if index == len(messages_list) - 1:
+                        prompt += message["content"]
+                    else:
+                        prompt += message["content"] + "\n"
+                return prompt
+
         kwargs = {
             "stop_sequences": ["</s>", "[/INST]", "[INST]"], 
             "echo_prompt": False, 
@@ -594,10 +608,12 @@ class TogetherChat(Chat):
 
         if self.model_name.startswith("together/phi-2"):
             # Completion model
-            kwargs["prompt"] = messages_for_request
+            kwargs["prompt"] = concat_messages(model_type="COMPLETION", messages_list=messages)
+            self.client.set_model_type(model_type="COMPLETION")
         else:
             # Chat model
-            kwargs["messages"] = messages_for_request
+            kwargs["messages"] = concat_messages(model_type="CHAT", messages_list=messages)
+            self.client.set_model_type(model_type="CHAT")
 
             # Create Request object using kwargs
         request = Request(**kwargs)

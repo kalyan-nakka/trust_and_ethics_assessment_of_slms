@@ -48,7 +48,6 @@ Currently async requests are only used for models that are timing out,
 because async requests are slower than sync requests.
 
 Note: These should be HELM model names, not Together model name aliases."""
-# TODO: Eventually delete this and switch every model to async requests.
 
 
 MODEL_ALIASES: Dict[str, str] = {
@@ -91,13 +90,14 @@ MODEL_ALIASES: Dict[str, str] = {
     "Llama-2-7b-chat-hf": "meta-llama/Llama-2-7b-chat-hf",
     "Mistral-7B-Instruct-v0.2": "mistralai/Mistral-7B-Instruct-v0.2",
     "RedPajama-INCITE-Chat-3B-v1": "togethercomputer/RedPajama-INCITE-Chat-3B-v1",
+    "phi-2": "microsoft/phi-2",
 }
 """Together model name aliases.
 
 HELM users use a shorter model name (e.g. together/flan-t5-xxl)
 whereas the Together client sends and caches requests using
 a longer model name that is suffixed with the implementation framework
-(e.g. flan-t5-xxl-hf). This allows trackcing exactly which
+(e.g. flan-t5-xxl-hf). This allows tracking exactly which
 implementation was used in the cached results, since some results may
 be different depending on the implementation (e.g. efficiency metrics).
 This also allows future migration of results in the case of changes of
@@ -120,11 +120,12 @@ class TogetherAIClient(Client):
     checks if the request/result is cached. We return the result if it's in the cache. Otherwise, we return an error.
     """
 
-    INFERENCE_ENDPOINT: str = "https://api.together.xyz/v1/chat/completions"
+    CHAT_ENDPOINT: str = "https://api.together.xyz/v1/chat/completions"
+    COMPLETION_ENDPOINT: str = "https://api.together.xyz/v1/completions"
     RETRIEVE_JOB_MAX_WAIT_SECONDS: int = 60
 
     @staticmethod
-    def convert_to_raw_request(request: Request) -> Dict:
+    def convert_to_raw_chat_request(request: Request) -> Dict:
         # Following the examples from https://github.com/togethercomputer/open-models-api
         return {
             "temperature": request.temperature,
@@ -139,18 +140,38 @@ class TogetherAIClient(Client):
             "logprobs": 0,
         }
 
+    @staticmethod
+    def convert_to_raw_completion_request(request: Request) -> Dict:
+        # Following the examples from https://github.com/togethercomputer/open-models-api
+        return {
+            "temperature": request.temperature,
+            "n": request.num_completions,
+            "max_tokens": request.max_tokens,
+            "stop": request.stop_sequences or None,
+            "echo": request.echo_prompt,
+            "top_p": request.top_p,
+            "top_k": request.top_k_per_token,
+            "prompt": request.prompt,
+            "model": MODEL_ALIASES.get(request.model_engine, request.model_engine),
+            "logprobs": 0,
+        }
+
     def __init__(self, cache_config: CacheConfig, api_key: Optional[str] = None):
-        # TODO: the endpoint currently doesn't require an API key. 
         # When an API key is not specified in credentials.conf, 
         # we rely on offline evaluation only.
         self.api_key: Optional[str] = api_key
         self.cache = Cache(cache_config)
+        self.model_type = None
 
-    def _get_job_url(self, job_id: str) -> str:
-        return f"https://api.together.xyz/jobs/job/{job_id}"
+    def set_model_type(self, model_type):
+        self.model_type = model_type
 
     def make_request(self, request: Request) -> RequestResult:
-        raw_request = TogetherAIClient.convert_to_raw_request(request)
+
+        if self.model_type == "CHAT":
+            raw_request = TogetherAIClient.convert_to_raw_chat_request(request)
+        else:
+            raw_request = TogetherAIClient.convert_to_raw_completion_request(request)
         cache_key: Dict = Client.make_cache_key(raw_request, request)
 
         if not self.api_key:
@@ -159,12 +180,18 @@ class TogetherAIClient(Client):
         headers: Dict[str, str] = {"Authorization": f"Bearer {self.api_key}"}
 
         def do_it_sync() -> Dict[Any, Any]:
-            response = requests.post(TogetherAIClient.INFERENCE_ENDPOINT, headers=headers, json=raw_request)
+            raw_response = None
+
+            if self.model_type == "CHAT":
+                raw_response = requests.post(TogetherAIClient.CHAT_ENDPOINT, headers=headers, json=raw_request)
+            else:
+                raw_response = requests.post(TogetherAIClient.COMPLETION_ENDPOINT, headers=headers, json=raw_request)
+
             try:
-                response.raise_for_status()
+                raw_response.raise_for_status()
             except Exception as e:
                 raise TogetherAIClientError(
-                    f"Together request failed with {response.status_code}: {response.text}"
+                    f"Together request failed with {raw_response.status_code}: {raw_response.text}"
                 ) from e
             
             # result = response.json()
@@ -175,7 +202,7 @@ class TogetherAIClient(Client):
             #     raise TogetherAIClientError(f"Together request failed with error: {error_message}")
             # return result["output"]
 
-            return response.json()
+            return raw_response.json()
 
         try:
             response, cached = self.cache.get(cache_key, wrap_request_time(do_it_sync))
@@ -194,7 +221,6 @@ class TogetherAIClient(Client):
             sequence_logprob = 0
             tokens: List[Token] = []
 
-            # TODO: take this out when "logprobs" is supported properly in batch/offline mode
             # Currently, token_logprobs is provided in interactive/online mode but it has a different format
             # Waiting for a fix.
             if raw_completion.get("logprobs", None):
@@ -202,24 +228,34 @@ class TogetherAIClient(Client):
                 for text, logprob, top_logprobs in zip(
                     raw_data.get("tokens"), raw_data.get("token_logprobs"), raw_data.get("top_logprobs")
                 ):
-                    # TODO #1654: Check if this is still needed
                     text = cleanup_str(text, "together")
                     tokens.append(Token(text=text, logprob=logprob or 0, top_logprobs=dict(top_logprobs or {})))
                     sequence_logprob += logprob or 0
             else:
                 # hack: just make the entire text one token so that something shows up in the frontend
-                text = cleanup_str(raw_completion.get("message").get("content"), "together")
+                if self.model_type == "CHAT":
+                    text = cleanup_str(raw_completion.get("message").get("content"), "together")
+                else:
+                    text = cleanup_str(raw_completion.get("text"), "together")
                 tokens.append(Token(text=text, logprob=0, top_logprobs={}))
 
             raw_finish_reason: Optional[str] = raw_completion.get("finish_reason")
             finish_reason: Optional[Dict] = {"reason": raw_finish_reason} if raw_finish_reason else None
 
-            completion = Sequence(
-                text=cleanup_str(raw_completion.get("message").get("content"), "together"),
-                logprob=sequence_logprob,
-                tokens=tokens,
-                finish_reason=finish_reason,
-            )
+            if self.model_type == "CHAT":
+                completion = Sequence(
+                    text=cleanup_str(raw_completion.get("message").get("content"), "together"),
+                    logprob=sequence_logprob,
+                    tokens=tokens,
+                    finish_reason=finish_reason,
+                )
+            else:
+                completion = Sequence(
+                    text=cleanup_str(raw_completion.get("text"), "together"),
+                    logprob=sequence_logprob,
+                    tokens=tokens,
+                    finish_reason=finish_reason,
+                )
             completion = truncate_sequence(completion, request)
             completions.append(completion)
 
