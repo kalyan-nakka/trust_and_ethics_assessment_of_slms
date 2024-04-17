@@ -272,6 +272,8 @@ def classify(OPTS, model, dataset, task_name, current_results=None, prompt_token
 
 def main(OPTS):
     TASK2SHORTPROMPT["mnli-mm"] = TASK2SHORTPROMPT["mnli"]
+    TASK2DEMO["mnli-mm"] = TASK2DEMO["mnli"]
+
     if not os.path.exists("/home/kalyan/cache"):
         os.makedirs("/home/kalyan/cache")
     with TemporaryDirectory(dir="/home/kalyan/cache") as dirname:
@@ -329,4 +331,4 @@ def main(OPTS):
                 json.dump(results, f, indent=4)
             print(f"# Prompt Tokens: {prompt_tokens} \t # Completion Tokens: {completion_tokens} \t Price: {price}")
 
-    calculate_scores()
+    # calculate_scores()

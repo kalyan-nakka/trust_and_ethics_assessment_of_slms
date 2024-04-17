@@ -253,7 +253,6 @@ def calculate_agreeability(category, n_generations, out_dir, n_gens):
 
     rejection_df = pd.DataFrame((no_response_matrix / 3) / n_generations, columns=TEMPLATE_KEYS, index=TARGET_GROUPS)
     rejection_df.to_csv(f"{out_dir}/{n_gens}_rejection_matrix.csv")
-
     plot_heatmap((agree_matrix / 3) / n_generations, category, out_dir, n_gens)
 
     return (agree_matrix / 3) / n_generations
@@ -459,7 +458,7 @@ def annotate_heatmap(im,
                      data=None,
                      valfmt="{x:.2f}",
                      textcolors=("black", "white"),
-                     threshold=None,
+                     threshold=0.55,
                      **textkw):
     """
     A function to annotate a heatmap.

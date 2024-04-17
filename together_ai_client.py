@@ -87,10 +87,11 @@ MODEL_ALIASES: Dict[str, str] = {
     
     # AF Interested Models
     "gemma-2b-it": "google/gemma-2b-it",
+    "phi-2": "microsoft/phi-2",
+    "RedPajama-INCITE-Chat-3B-v1": "togethercomputer/RedPajama-INCITE-Chat-3B-v1",
     "Llama-2-7b-chat-hf": "meta-llama/Llama-2-7b-chat-hf",
     "Mistral-7B-Instruct-v0.2": "mistralai/Mistral-7B-Instruct-v0.2",
-    "RedPajama-INCITE-Chat-3B-v1": "togethercomputer/RedPajama-INCITE-Chat-3B-v1",
-    "phi-2": "microsoft/phi-2",
+    "Qwen1.5-7B-Chat": "Qwen/Qwen1.5-7B-Chat",
 }
 """Together model name aliases.
 

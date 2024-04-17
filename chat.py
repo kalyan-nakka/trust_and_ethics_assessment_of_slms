@@ -593,7 +593,7 @@ class TogetherChat(Chat):
                         prompt += message["content"]
                     else:
                         prompt += message["content"] + "\n"
-                return prompt
+                return prompt if prompt else "prompt"
 
         kwargs = {
             "stop_sequences": ["</s>", "[/INST]", "[INST]"], 

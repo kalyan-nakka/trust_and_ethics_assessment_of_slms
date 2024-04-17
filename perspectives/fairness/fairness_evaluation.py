@@ -73,4 +73,4 @@ def main(args):
             # else:
             #     m_dpd = m_eod = 0
 
-            aggregate_current_scores(args)
+            # aggregate_current_scores(args)
