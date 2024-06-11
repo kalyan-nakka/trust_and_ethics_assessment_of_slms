@@ -236,5 +236,5 @@ def main(args):
     print("sum - Num of completion tokens: ", completion_tokens_over_all_settings)
     print("sum - Num of prompt: ", num_prompt_over_all_settings)
 
-    print("*********calculate score ******")
-    calculate_scores()
+    # print("*********calculate score ******")
+    # calculate_scores()

@@ -14,12 +14,12 @@ def aggregate_current_scores(args):
     rejection_rates = []
 
     outfile2sensiattr = {
-        # 'zero_shot_br_0.0.json': os.path.join(args.fairness.data_dir,
-        #                                       'sensitive_attr_adult_0_200_test_base_rate_0.0.npy'),
-        # 'zero_shot_br_0.5.json': os.path.join(args.fairness.data_dir,
-        #                                       'sensitive_attr_adult_0_200_test_base_rate_0.5.npy'),
-        # 'zero_shot_br_1.0.json': os.path.join(args.fairness.data_dir,
-        #                                       'sensitive_attr_adult_0_200_test_base_rate_1.0.npy'),
+        'zero_shot_br_0.0.json': os.path.join(args.fairness.data_dir,
+                                              'sensitive_attr_adult_0_200_test_base_rate_0.0.npy'),
+        'zero_shot_br_0.5.json': os.path.join(args.fairness.data_dir,
+                                              'sensitive_attr_adult_0_200_test_base_rate_0.5.npy'),
+        'zero_shot_br_1.0.json': os.path.join(args.fairness.data_dir,
+                                              'sensitive_attr_adult_0_200_test_base_rate_1.0.npy'),
         # 'few_shot_tr_br_0.0.json': os.path.join(args.fairness.data_dir,
         #                                         'sensitive_attr_adult_32_200_train_base_rate_0.0.npy'),
         # 'few_shot_tr_br_0.5.json': os.path.join(args.fairness.data_dir,
@@ -36,6 +36,31 @@ def aggregate_current_scores(args):
                                           'gt_labels_crime_0_300_test_base_rate_0.5.npy'),
         'crime_br_1.0.json': os.path.join(args.fairness.data_dir,
                                           'gt_labels_crime_0_300_test_base_rate_1.0.npy')
+    }
+
+    datafiles = {
+        'zero_shot_br_0.0.json': os.path.join(args.fairness.data_dir,
+                                              'adult_0_200_test_base_rate_0.0.jsonl'),
+        'zero_shot_br_0.5.json': os.path.join(args.fairness.data_dir,
+                                              'adult_0_200_test_base_rate_0.5.jsonl'),
+        'zero_shot_br_1.0.json': os.path.join(args.fairness.data_dir,
+                                              'adult_0_200_test_base_rate_1.0.jsonl'),
+        # 'few_shot_tr_br_0.0.json': os.path.join(args.fairness.data_dir,
+        #                                         'sensitive_attr_adult_32_200_train_base_rate_0.0.npy'),
+        # 'few_shot_tr_br_0.5.json': os.path.join(args.fairness.data_dir,
+        #                                         'sensitive_attr_adult_32_200_train_base_rate_0.5.npy'),
+        # 'few_shot_tr_br_1.0.json': os.path.join(args.fairness.data_dir,
+        #                                         'sensitive_attr_adult_32_200_train_base_rate_1.0.npy'),
+        # 'few_shot_16_fair_demon.json': os.path.join(args.fairness.data_dir,
+        #                                             'sensitive_attr_adult_16_200_train_br_0.0_test_br_0.5.npy'),
+        # 'few_shot_32_fair_demon.json': os.path.join(args.fairness.data_dir,
+        #                                             'sensitive_attr_adult_32_200_train_br_0.0_test_br_0.5.npy'),
+        'crime_br_0.0.json': os.path.join(args.fairness.data_dir,
+                                          'crime_0_300_test_base_rate_0.0.jsonl'),
+        'crime_br_0.5.json': os.path.join(args.fairness.data_dir,
+                                          'crime_0_300_test_base_rate_0.5.jsonl'),
+        'crime_br_1.0.json': os.path.join(args.fairness.data_dir,
+                                          'crime_0_300_test_base_rate_1.0.jsonl')
     }
 
     files = outfile2sensiattr.keys()
@@ -61,6 +86,8 @@ def aggregate_current_scores(args):
 
         content = None
         sensitive_file = outfile2sensiattr[file]
+        data_file = datafiles[file]
+
         with open(out_file_path) as f:
             for line in f.readlines():
                 if content is not None:
@@ -68,7 +95,14 @@ def aggregate_current_scores(args):
                 content = json.loads(line)
 
         responses = content["responses"]
-        labels = content["labels"]
+        # labels = content["labels"]
+        labels = content.get("labels", None)
+        if labels is None:
+            labels = []
+            with open(data_file) as f:
+                for line in f.readlines():
+                    json_data = json.loads(line)
+                    labels.append(json_data.get("label", ""))
 
         prediction = []
         idx_known = []
@@ -191,14 +225,15 @@ def aggregate_current_scores(args):
         json.dump(scores, dest, indent=4)
 
 
-def main():
+def results_eval():
     from argparse import Namespace
 
     fairness_args = Namespace()
     fairness_args.fairness = Namespace()
     fairness_args.model_config = Namespace()
 
-    RESULT_DIR = "./results/fairness/results/together/"
+    # RESULT_DIR = "./results/fairness/results/together/"
+    RESULT_DIR = "./results_mobile/fairness/"
 
     DATA_DIR = "./data/fairness/fairness_data/"
 
@@ -219,4 +254,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    results_eval()

@@ -133,7 +133,7 @@ class BaseConfig:
     disable_sys_prompt: Optional[bool] = False
 
     # OpenAI API Key (or) Huggingface Secret (or) Together AI API Key
-    key: Optional[str] = ""
+    key: Optional[str] = "d74b55d2fe1d44f1002a230b8cbedced2000095d199e6d1234fd7a2eb63e5461"
     dry_run: bool = False
 
     advglue: Optional[AdvGLUEConfig] = None

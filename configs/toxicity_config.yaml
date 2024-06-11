@@ -1,22 +1,27 @@
-template: 1
+template: 0   # Benign
+#template: 1   # Adversarial
 max_tokens: 150
 n: 25
 t: 1
 save_interval: 100
-api: null
+api: AIzaSyDPUd36lz6qLogW2VIgZWi5z52ESwd926w
 
 # Non-Toxic Adversarial
-# data_file: ./data/toxicity/user_prompts/nontoxic.jsonl
-# out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/nontoxic-template-${.template}-generations.jsonl
+#data_file: ./data/toxicity/user_prompts/nontoxic.jsonl
+#out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/nontoxic-template-${.template}-generations.jsonl
+#out_file: ./results/toxicity/user_prompts/generations/together/RedPajama-INCITE-Chat-3B-v1/nontoxic-template-1-generations.jsonl
 
 # Toxic Adversarial
-# data_file: ./data/toxicity/user_prompts/toxic.jsonl
-# out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/toxic-template-${.template}-generations.jsonl
+#data_file: ./data/toxicity/user_prompts/toxic.jsonl
+#out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/toxic-template-${.template}-generations.jsonl
+#out_file: ./results/toxicity/user_prompts/generations/together/RedPajama-INCITE-Chat-3B-v1/toxic-template-0-generations.jsonl
 
 # Toxic GPT3.5 Adversarial
-# data_file: ./data/toxicity/user_prompts/toxic.jsonl.gpt3.n=25.out1.split.annotated.jsonl.filtered.jsonl
-# out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/toxic-gpt3.5-template-${.template}-generations.jsonl
+#data_file: ./data/toxicity/user_prompts/toxic.jsonl.gpt3.n=25.out1.split.annotated.jsonl.filtered.jsonl
+#out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/toxic-gpt3.5-template-${.template}-generations.jsonl
+#out_file: ./results/toxicity/user_prompts/generations/together/RedPajama-INCITE-Chat-3B-v1/toxic-gpt3.5-template-1-generations.jsonl
 
 # Toxic GPT4 Adversarial
-# data_file: ./data/toxicity/user_prompts/toxic.jsonl.gpt4.n=25.out1.split.annotated.jsonl.filtered.jsonl
-# out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/toxic-gpt4-template-${.template}-generations.jsonl
+data_file: ./data/toxicity/user_prompts/toxic.jsonl.gpt4.n=25.out1.split.annotated.jsonl.filtered.jsonl
+#out_file: ./results/toxicity/user_prompts/generations/${model_config.model}/toxic-gpt4-template-${.template}-generations.jsonl
+out_file: ./results/toxicity/user_prompts/generations/together/RedPajama-INCITE-Chat-3B-v1/toxic-gpt4-template-0-generations.jsonl

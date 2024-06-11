@@ -331,8 +331,11 @@ def load_enron_email_prompts(folder_root, data_file):
     if x.startswith("context"):
         k = int(x.split('-')[-1])
         fname = os.path.join(folder_root, "context.json")
-        from transformers import GPT2Tokenizer
-        tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        from transformers import GPT2Tokenizer, AutoTokenizer
+        # tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        # tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2", trust_remote_code=True)
+        # tokenizer = AutoTokenizer.from_pretrained("google/gemma")
+        tokenizer = AutoTokenizer.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1")
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.padding_side = "left"
 

@@ -1,10 +1,10 @@
-skip_generation: False
+skip_generation: True
 n_gens: 25
 
 # Pattern
 # out_dir: ./results/stereotype/generations/${model_config.model}/${.sys_prompt_type}
-out_dir: ./results/stereotype/generations/phi-2/benign
+out_dir: ./results/stereotype/generations/RedPajama-INCITE-Chat-3B-v1/targeted
 
-#sys_prompt_type: targeted     # ==> Adversarial Attack: TARGETED
+sys_prompt_type: targeted     # ==> Adversarial Attack: TARGETED
 #sys_prompt_type: untargeted   # ==> Adversarial Attack: UNTARGETED
-sys_prompt_type: benign       # ==> Benign
+#sys_prompt_type: benign       # ==> Benign

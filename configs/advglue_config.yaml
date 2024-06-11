@@ -4,13 +4,14 @@ no_adv: false     # False for Adversarial evaluation
 resume: false
 save_interval: 100
 remove_newline: false
-task: ["sst2", "qqp", "mnli"]
+task: ["rte", "sst2", "qnli", "mnli", "mnli-mm", "qqp"]
 
 ###########
 # AdvGLUE #
 ###########
 data_file: null
-out_file: ./results/adv-glue-plus-plus/${model_config.model}/glue-benign-demo.json
+#out_file: ./results/adv-glue-plus-plus/${model_config.model}/glue-benign-demo.json
+out_file: ./results/adv-glue-plus-plus/together/gemma/glue-benign-demo.json
 
 ######################
 # AdvGLUE++ (Alpaca) #

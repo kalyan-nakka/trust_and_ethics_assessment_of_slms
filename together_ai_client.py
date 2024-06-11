@@ -86,7 +86,7 @@ MODEL_ALIASES: Dict[str, str] = {
     "stablelm-base-alpha-7b": "stabilityai/stablelm-base-alpha-7b",
     
     # AF Interested Models
-    "gemma-2b-it": "google/gemma-2b-it",
+    "gemma": "google/gemma",
     "phi-2": "microsoft/phi-2",
     "RedPajama-INCITE-Chat-3B-v1": "togethercomputer/RedPajama-INCITE-Chat-3B-v1",
     "Llama-2-7b-chat-hf": "meta-llama/Llama-2-7b-chat-hf",
