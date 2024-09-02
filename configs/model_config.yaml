@@ -1,13 +1,13 @@
 ## Model Config for GEMMA
-#model: "together/gemma"
-#type: CHAT
-#conv_template: "gemma"
-#model_loader: HF
-#torch_dtype: BFLOAT16
-#quant_file: null
-#tokenizer_name: null
-#trust_remote_code: true
-#use_auth_token: true
+model: "together/gemma"
+type: CHAT
+conv_template: "gemma"
+model_loader: HF
+torch_dtype: BFLOAT16
+quant_file: null
+tokenizer_name: null
+trust_remote_code: true
+use_auth_token: true
 
 ## Model Config for PHI-2
 #model: "together/phi-2"
@@ -21,15 +21,15 @@
 #use_auth_token: true
 
 # Model Config for RedPajama
-model: "together/RedPajama-INCITE-Chat-3B-v1"
-type: CHAT
-conv_template: "redpajama-incite"
-model_loader: HF
-torch_dtype: BFLOAT16
-quant_file: null
-tokenizer_name: null
-trust_remote_code: true
-use_auth_token: true
+#model: "together/RedPajama-INCITE-Chat-3B-v1"
+#type: CHAT
+#conv_template: "redpajama-incite"
+#model_loader: HF
+#torch_dtype: BFLOAT16
+#quant_file: null
+#tokenizer_name: null
+#trust_remote_code: true
+#use_auth_token: true
 
 ## Model Config for LLAMA-2
 #model: "together/Llama-2-7b-chat-hf"

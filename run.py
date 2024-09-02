@@ -4,13 +4,14 @@ from huggingface_hub import login
 # from summarize import summarize_results
 
 PERSPECTIVES = {
-    "stereotype": "perspectives.stereotype.bias_generation",
-    # "advglue": "perspectives.advglue.gpt_eval",
-    # "toxicity": "perspectives.toxicity.text_generation_hydra",
+    "do_not_answer": "perspectives.do_not_answer.get_responses",
+    # "stereotype": "perspectives.stereotype.bias_generation",
     # "fairness": "perspectives.fairness.fairness_evaluation",
     # "privacy": "perspectives.privacy.privacy_evaluation",
+    # "advglue": "perspectives.advglue.gpt_eval",                                          # NOT Interested
+    # "toxicity": "perspectives.toxicity.text_generation_hydra",                           # NOT Interested
     # # "adv_demonstration": "perspectives.adv_demonstration.adv_demonstration_hydra",     # NOT Interested
-    # "machine_ethics": "perspectives.machine_ethics.test_machine_ethics",
+    # "machine_ethics": "perspectives.machine_ethics.test_machine_ethics",                 # NOT Interested
     # # "ood": "perspectives.ood.evaluation_ood"                                           # NOT Interested
 }
 
@@ -30,7 +31,7 @@ def run(base_config: BaseConfig) -> None:
 
 
 if __name__ == "__main__":
-    # login("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")
+    # login("huggingface_token")
 
     config = build_config(perspectives=PERSPECTIVES)
     run(base_config=config)

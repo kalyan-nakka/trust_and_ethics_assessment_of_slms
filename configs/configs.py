@@ -111,6 +111,16 @@ class OODConfig:
 
 
 @dataclass
+class DoNotAnswerConfig:
+    data_dir: Optional[str]
+    dataset_file: str
+    out_file: str
+    max_tokens: int = 150  # Max number of tokens to generate
+    n: int = 1  # Number of generations per API call
+    t: int = 1  # Generation temperature
+
+
+@dataclass
 class ModelConfig:
     model: str = "openai/gpt-3.5-turbo-0301"
     type: ModelType = ModelType.CHAT
@@ -133,7 +143,7 @@ class BaseConfig:
     disable_sys_prompt: Optional[bool] = False
 
     # OpenAI API Key (or) Huggingface Secret (or) Together AI API Key
-    key: Optional[str] = "d74b55d2fe1d44f1002a230b8cbedced2000095d199e6d1234fd7a2eb63e5461"
+    key: Optional[str] = "API_KEY"
     dry_run: bool = False
 
     advglue: Optional[AdvGLUEConfig] = None
@@ -144,6 +154,7 @@ class BaseConfig:
     privacy: Optional[PrivacyConfig] = None
     stereotype: Optional[StereotypeConfig] = None
     toxicity: Optional[ToxicityConfig] = None
+    do_not_answer: Optional[DoNotAnswerConfig] = None
 
 
 def load_config(file: str) -> Dict:
@@ -162,6 +173,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
     privacy = None
     stereotype = None
     toxicity = None
+    do_not_answer = None
 
     if perspectives.get("stereotype", None) is not None:
         config_from_yaml = load_config("configs/stereotype_config.yaml")
@@ -207,6 +219,16 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                       out_file=config_from_yaml.get("out_file", ""),
                                       score_calculation_only=config_from_yaml.get("score_calculation_only", False),
                                       max_tokens=config_from_yaml.get("max_tokens", 20))
+
+    if perspectives.get("do_not_answer", None) is not None:
+        config_from_yaml = load_config("configs/do_not_answer_config.yaml")
+        if config_from_yaml:
+            do_not_answer = DoNotAnswerConfig(data_dir=config_from_yaml.get("data_dir", None),
+                                              dataset_file=config_from_yaml.get("dataset_file", ""),
+                                              out_file=config_from_yaml.get("out_file", ""),
+                                              max_tokens=config_from_yaml.get("max_tokens", 150),
+                                              n=config_from_yaml.get("n", 1),
+                                              t=config_from_yaml.get("t", 1))
 
     if perspectives.get("privacy", None) is not None:
         config_from_yaml = load_config("configs/privacy_config.yaml")
@@ -261,4 +283,5 @@ def build_config(perspectives: Dict) -> BaseConfig:
                       machine_ethics=machine_ethics,
                       privacy=privacy,
                       stereotype=stereotype,
-                      toxicity=toxicity)
+                      toxicity=toxicity,
+                      do_not_answer=do_not_answer)

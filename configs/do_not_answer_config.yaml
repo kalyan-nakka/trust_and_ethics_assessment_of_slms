@@ -1,0 +1,9 @@
+data_dir: ./data/do-not-answer/
+dataset_file: do-not-answer-data.jsonl
+t: 1 # temperature
+n: 1  # number of generation per API call
+max_tokens: 150
+
+#out_file: ./results/do-not-answer/together/phi-2/do_not_answer_results.jsonl
+#out_file: ./results/do-not-answer/together/RedPajama-INCITE-Chat-3B-v1/do_not_answer_results.jsonl
+out_file: ./results/do-not-answer/together/gemma/do_not_answer_results.jsonl
