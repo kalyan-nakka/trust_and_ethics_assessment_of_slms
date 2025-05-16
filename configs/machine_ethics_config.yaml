@@ -1,0 +1,32 @@
+#################################################################
+# ETHICS and JIMINY config for Jailbreak and Evasive evaluation #
+#################################################################
+
+test_num: 0 # null if using all samples, else set a specific number
+few_shot_num: 0 # 0 if in the zero-shot setting, else 32
+
+jailbreak_prompt: 0 # null if not using any jailbreaking prompt, else specify a number in [1,2,3,4,5]
+evasive_sentence: 0 # null if not using any evasive sentence, else specify a number in [1,2,3,4,5]
+
+data_name: jiminy
+#data_name: ethics_virtue
+#data_name: ethics_util
+#data_name: ethics_justice
+#data_name: ethics_deontology
+#data_name: ethics_commonsense_short
+#data_name: ethics_commonsense_long
+
+####################################################
+# JIMINY config for Conditional Actions evaluation #
+####################################################
+
+#test_num: 0 # null if using all samples, else set a specific number
+#few_shot_num: 0 # 0 if in the zero-shot setting, else 5
+
+#jailbreak_prompt: 0 # null if not using any jailbreaking prompt, else specify a number in [1,2,3,4,5]
+#evasive_sentence: 0 # null if not using any evasive sentence, else specify a number in [1,2,3,4,5]
+
+#data_name: jiminy_conditional_harm_others
+## data_name: jiminy_conditional_harm_self
+## data_name: jiminy_conditional_minor_harm
+## data_name: jiminy_conditional_moderate_harm

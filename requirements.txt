@@ -1,0 +1,8 @@
+omegaconf~=2.3.0
+pydantic
+shortuuid~=1.0.11
+fairlearn
+crfm-helm @ git+https://github.com/danielz02/helm.git@main
+matplotlib
+seaborn
+huggingface_hub

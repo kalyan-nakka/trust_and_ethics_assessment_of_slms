@@ -1,0 +1,35 @@
+sys: false
+demo: true
+no_adv: false     # False for Adversarial evaluation
+resume: false
+save_interval: 100
+remove_newline: false
+task: ["rte", "sst2", "qnli", "mnli", "mnli-mm", "qqp"]
+
+###########
+# AdvGLUE #
+###########
+data_file: null
+#out_file: ./results/adv-glue-plus-plus/${model_config.model}/glue-benign-demo.json
+out_file: ./results/adv-glue-plus-plus/together/gemma/glue-benign-demo.json
+
+######################
+# AdvGLUE++ (Alpaca) #
+######################
+
+# data_file: ./data/adv-glue-plus-plus/data/alpaca.json
+# out_file: ./results/adv-glue-plus-plus/${model_config.model}/alpaca-demo.json
+
+######################
+# AdvGLUE++ (Vicuna) #
+######################
+
+# data_file: ./data/adv-glue-plus-plus/data/vicuna.json
+# out_file: ./results/adv-glue-plus-plus/${model_config.model}/vicuna-demo.json
+
+############################
+# AdvGLUE++ (StableVicuna) #
+############################
+
+# data_file: ./data/adv-glue-plus-plus/data/stable-vicuna.json
+# out_file: ./results/adv-glue-plus-plus/${model_config.model}/stable-vicuna-demo.json

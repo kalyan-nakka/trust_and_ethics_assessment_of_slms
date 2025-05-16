@@ -1,0 +1,4 @@
+Follow the below steps w.r.t On-Device Small Language Models evaluation,
+
+1. AI-powered Android Chat App is present in trust-and-ethics-in-SLMs_mlc-llm repository. Follow this repository specific instructions.
+2. Place the response files from your Smartphone to ./results_mobile/[perspective]

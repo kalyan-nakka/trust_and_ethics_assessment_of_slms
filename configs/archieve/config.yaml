@@ -1,0 +1,6 @@
+key: null
+dry_run: false
+
+hydra:
+  job:
+    chdir: false
