@@ -111,6 +111,7 @@ def stereotype_analysis(models):
 
 
 def fairness_analysis(models):
+    # Set the values of m_dpd w.r.t each SLM and environment
     m_dpd_results = {
         "gemma": {
             "on_server": [0.02, 0.02, 0.07, 0.11, 0.05, 0.05],

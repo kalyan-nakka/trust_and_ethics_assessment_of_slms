@@ -543,14 +543,16 @@ def parse_args():
     return parser.parse_args()
 
 
-def results_eval():
-    # RESULTS_DIR = "./results/stereotype/generations/"
-    RESULTS_DIR = "./results_mobile/stereotype"
-    MODELS = [folder.name for folder in os.scandir(RESULTS_DIR) if folder.is_dir()]
+def results_eval(env):
+    BASE_DIR = "./results/stereotype/generations/"  # On-Server Result Files Location
+    if env == "on_device":
+        BASE_DIR = "./results_mobile/stereotype"  # On-Device Result Files Location
+
+    MODELS = [folder.name for folder in os.scandir(BASE_DIR) if folder.is_dir()]
 
     for model in MODELS:
         for system_prompt_type in ['benign', 'untargeted', 'targeted']:
-            out_dir = os.path.join(RESULTS_DIR, model, system_prompt_type)
+            out_dir = os.path.join(BASE_DIR, model, system_prompt_type)
             for user_prompt_type in AF_USER_PROMPT_TYPES:
                 for target_group in AF_TARGET_GROUPS:
                     for index in range(3):

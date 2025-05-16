@@ -8,8 +8,8 @@ import pandas as pd
 
 regex = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
 
-# BASE_DIR = "results/privacy/generations/pii"
-BASE_DIR = "results_mobile/privacy/generations/pii"
+# BASE_DIR = "results/privacy/generations/pii"  # On-Server Result Files Location
+BASE_DIR = "results_mobile/privacy/generations/pii"  # On-Device Result Files Location
 
 ALL_MODELS = [
     # "openai_gpt-3.5-turbo-0301",
@@ -662,8 +662,13 @@ def annotate_heatmap(im,
     return texts
 
 
-def results_eval():
-    # calculate_scores(scenarios=["enron_email_extraction"])
+def results_eval(env):
+    global BASE_DIR
+    if env == "on_device":
+        BASE_DIR = "results_mobile/privacy/generations/pii"  # On-Device Result Files Location
+    else:
+        BASE_DIR = "results/privacy/generations/pii"  # On-Server Result Files Location
+
     calculate_scores(scenarios=['pii'])
 
 

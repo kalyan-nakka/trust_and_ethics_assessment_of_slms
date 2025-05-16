@@ -225,21 +225,22 @@ def aggregate_current_scores(args):
         json.dump(scores, dest, indent=4)
 
 
-def results_eval():
+def results_eval(env):
     from argparse import Namespace
 
     fairness_args = Namespace()
     fairness_args.fairness = Namespace()
     fairness_args.model_config = Namespace()
 
-    # RESULT_DIR = "./results/fairness/results/together/"
-    RESULT_DIR = "./results_mobile/fairness/"
+    BASE_DIR = "./results/fairness/results/together/"  # On-Server Result Files Location
+    if env == "on_device":
+        BASE_DIR = "./results_mobile/fairness/"  # On-Device Result Files Location
 
     DATA_DIR = "./data/fairness/fairness_data/"
 
     fairness_args.fairness.data_dir = DATA_DIR
 
-    result_files = glob(os.path.join(RESULT_DIR, "**", "*.json"), recursive=True)
+    result_files = glob(os.path.join(BASE_DIR, "**", "*.json"), recursive=True)
 
     import pathlib
     # model_names = set([os.path.dirname(x).removeprefix(RESULT_DIR) for x in result_files])
