@@ -111,7 +111,7 @@ class OODConfig:
 
 
 @dataclass
-class DoNotAnswerConfig:
+class EthicalSafeguardsConfig:
     data_dir: Optional[str]
     dataset_file: str
     out_file: str
@@ -154,7 +154,7 @@ class BaseConfig:
     privacy: Optional[PrivacyConfig] = None
     stereotype: Optional[StereotypeConfig] = None
     toxicity: Optional[ToxicityConfig] = None
-    do_not_answer: Optional[DoNotAnswerConfig] = None
+    ethical_safeguards: Optional[EthicalSafeguardsConfig] = None
 
 
 def load_config(file: str) -> Dict:
@@ -173,9 +173,9 @@ def build_config(perspectives: Dict) -> BaseConfig:
     privacy = None
     stereotype = None
     toxicity = None
-    do_not_answer = None
+    ethical_safeguards = None
 
-    if perspectives.get("stereotype", None) is not None:
+    if perspectives.get("stereotype", False):
         config_from_yaml = load_config("configs/stereotype_config.yaml")
         if config_from_yaml:
             stereotype = StereotypeConfig(skip_generation=config_from_yaml.get("skip_generation", False),
@@ -183,7 +183,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                           n_gens=config_from_yaml.get("n_gens", 25),
                                           out_dir=config_from_yaml.get("out_dir", None))
 
-    if perspectives.get("advglue", None) is not None:
+    if perspectives.get("advglue", False):
         config_from_yaml = load_config("configs/advglue_config.yaml")
         if config_from_yaml:
             advglue = AdvGLUEConfig(sys=config_from_yaml.get("sys", False),
@@ -196,7 +196,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                     remove_newline=config_from_yaml.get("remove_newline", False),
                                     task=config_from_yaml.get("task", field(default_factory=list)))
 
-    if perspectives.get("toxicity", None) is not None:
+    if perspectives.get("toxicity", False):
         config_from_yaml = load_config("configs/toxicity_config.yaml")
         if config_from_yaml:
             toxicity = ToxicityConfig(data_file=config_from_yaml.get("data_file", None),
@@ -208,7 +208,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                       save_interval=config_from_yaml.get("save_interval", 100),
                                       api=config_from_yaml.get("api", None))
 
-    if perspectives.get("fairness", None) is not None:
+    if perspectives.get("fairness", False):
         config_from_yaml = load_config("configs/fairness_config.yaml")
         if config_from_yaml:
             fairness = FairnessConfig(data_dir=config_from_yaml.get("data_dir", None),
@@ -220,17 +220,17 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                       score_calculation_only=config_from_yaml.get("score_calculation_only", False),
                                       max_tokens=config_from_yaml.get("max_tokens", 20))
 
-    if perspectives.get("do_not_answer", None) is not None:
-        config_from_yaml = load_config("configs/do_not_answer_config.yaml")
+    if perspectives.get("ethical_safeguards", False):
+        config_from_yaml = load_config("configs/ethical_safeguards.yaml")
         if config_from_yaml:
-            do_not_answer = DoNotAnswerConfig(data_dir=config_from_yaml.get("data_dir", None),
-                                              dataset_file=config_from_yaml.get("dataset_file", ""),
-                                              out_file=config_from_yaml.get("out_file", ""),
-                                              max_tokens=config_from_yaml.get("max_tokens", 150),
-                                              n=config_from_yaml.get("n", 1),
-                                              t=config_from_yaml.get("t", 1))
+            ethical_safeguards = EthicalSafeguardsConfig(data_dir=config_from_yaml.get("data_dir", None),
+                                                         dataset_file=config_from_yaml.get("dataset_file", ""),
+                                                         out_file=config_from_yaml.get("out_file", ""),
+                                                         max_tokens=config_from_yaml.get("max_tokens", 150),
+                                                         n=config_from_yaml.get("n", 1),
+                                                         t=config_from_yaml.get("t", 1))
 
-    if perspectives.get("privacy", None) is not None:
+    if perspectives.get("privacy", False):
         config_from_yaml = load_config("configs/privacy_config.yaml")
         if config_from_yaml:
             privacy = PrivacyConfig(scenario_name=config_from_yaml.get("scenario_name", None),
@@ -249,7 +249,7 @@ def build_config(perspectives: Dict) -> BaseConfig:
                                     prompt_types=config_from_yaml.get("prompt_types", field(default_factory=list)),
                                     privacy_topics=config_from_yaml.get("privacy_topics", field(default_factory=list)))
 
-    if perspectives.get("machine_ethics", None) is not None:
+    if perspectives.get("machine_ethics", False):
         config_from_yaml = load_config("configs/machine_ethics_config.yaml")
         if config_from_yaml:
             machine_ethics = EthicsConfig(data_name=config_from_yaml.get("data_name", None),
@@ -284,4 +284,4 @@ def build_config(perspectives: Dict) -> BaseConfig:
                       privacy=privacy,
                       stereotype=stereotype,
                       toxicity=toxicity,
-                      do_not_answer=do_not_answer)
+                      ethical_safeguards=ethical_safeguards)

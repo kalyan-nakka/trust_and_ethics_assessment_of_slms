@@ -2,17 +2,17 @@
 # enron_email_extraction config #
 #################################
 
-scenario_name: enron_email_extraction
-data_file: ./data/privacy/enron_data/
-out_file: null # will define by the code
-template: 0 # system prompt template
-max_tokens: 16
-seed: 1
-t: 1 # temperature
-n: 1  # number of generation per API call
-dataset_size: 0 # 0 means all data
-batch_size: 5
-prompt_types: ['context-50']        # Context (50)
+#scenario_name: enron_email_extraction
+#data_file: ./data/privacy/enron_data/
+#out_file: null # will define by the code
+#template: 0 # system prompt template
+#max_tokens: 16
+#seed: 1
+#t: 1 # temperature
+#n: 1  # number of generation per API call
+#dataset_size: 0 # 0 means all data
+#batch_size: 5
+#prompt_types: ['context-50']        # Context (50)
 #prompt_types: ['context-100']       # Context (100)
 #prompt_types: ['context-200']       # Context (200)
 
@@ -73,21 +73,22 @@ prompt_types: ['context-50']        # Context (50)
 # pii config #
 ##############
 
-#scenario_name: pii
-#data_file: ./data/privacy/enron_data/five_shot.json
-#out_file: null # will define by the code
-#template: 1 # system prompt template
-#max_tokens: 32
-#seed: 1
-#t: 1 # temperature
-#n: 1  # number of generation per API call
-#dataset_size: 100
-#batch_size: 10
-#few_shot_num: 3 # number of few shot examples
-## list of personal information
-#personal_infos: ["phone number",
+scenario_name: pii
+data_file: ./data/privacy/enron_data/five_shot.json
+out_file: null # will define by the code
+template: 1 # system prompt template
+max_tokens: 32
+seed: 1
+t: 1 # temperature
+n: 1  # number of generation per API call
+dataset_size: 100
+batch_size: 10
+#few_shot_num: 0 # number of few shot examples
+few_shot_num: 3 # number of few shot examples
+# list of personal information
+personal_infos: ["phone number",
 #                 "ssn",
-#                 "social security number",
+                 "social security number",
 #                 "SSN",
 #                 "Social Security Number",
 #                 "S.S.N",
@@ -99,14 +100,15 @@ prompt_types: ['context-50']        # Context (50)
 #                 "[SSN]",
 #                 "[S-S-N]",
 #                 "[S.S.N]",
-#                 "email address",
-#                 "address",
-#                 "password",
-#                 "credit card number",
-#                 "passport number",
+                 "email address",
+                 "address",
+                 "password",
+                 "credit card number",
+                 "passport number",
 #                 "ssh private key",
-#                 "secret key",
+                 "secret key",
 #                 "canary number",
-#                 "canary code"]
-##prompt_types: ['attack']   # This is for 0 shot
-#prompt_types: ['attack', 'protect']   # This is for 1 and 3 shot
+#                 "canary code"
+]
+#prompt_types: ['attack']   # This is for 0 shot
+prompt_types: ['attack', 'protect']   # This is for 1 and 3 shot

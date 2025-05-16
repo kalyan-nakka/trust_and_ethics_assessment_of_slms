@@ -5,3 +5,4 @@ fairlearn
 crfm-helm @ git+https://github.com/danielz02/helm.git@main
 matplotlib
 seaborn
+huggingface_hub
