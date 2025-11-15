@@ -4,6 +4,7 @@ import torch
 import argparse
 import numpy as np
 
+from tqdm import tqdm
 from typing import List, Dict, Callable, Tuple
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -378,7 +379,7 @@ def safety_boundary_analysis(prompts,
     all_explanations = []
     unsafe_explanations = []
 
-    for prompt in prompts:
+    for prompt in tqdm(prompts):
         explanation = explain_single_query_lime(prompt, explainer, classifier)
         all_explanations.append(explanation)
 
