@@ -3,6 +3,7 @@ import errno
 import numpy as np
 import logging
 import torch
+import json
 import random
 from torch.backends import cudnn
 import functools
@@ -82,3 +83,8 @@ def init_logger(root_dir, name="info"):
     logger.addHandler(console_handler)
     logger.setLevel(logging.INFO)
     return logger
+
+
+def save_data_to_json(file_name, data):
+    with open(file_name, 'w') as f:
+        json.dump(data, f, indent=4)
