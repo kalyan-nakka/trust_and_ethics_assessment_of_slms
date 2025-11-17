@@ -105,6 +105,7 @@ def is_response_harmful(cls, tokenizer, goal, response):
             **encoded.to(cls.device),
             do_sample=False,
             max_new_tokens=1,
+            pad_token_id=tokenizer.eos_token_id,
         ).cpu()
         output_ids = output_ids[:, len(encoded.input_ids[0]):]
 
@@ -179,7 +180,11 @@ def generate_response_from_on_server_model(model_name, tokenizer, model, prompt)
         input_length = len(input_ids[0])
 
         with torch.no_grad():
-            output_ids = model.generate(input_ids=input_ids.to("cuda"), max_new_tokens=100)
+            output_ids = model.generate(
+                input_ids=input_ids.to("cuda"),
+                max_new_tokens=100,
+                pad_token_id=tokenizer.eos_token_id
+            )
 
         response_ids = output_ids[0][input_length:]
 
@@ -188,7 +193,11 @@ def generate_response_from_on_server_model(model_name, tokenizer, model, prompt)
         input_length = len(input_ids[0])
 
         with torch.no_grad():
-            output_ids = model.generate(**input_ids, max_new_tokens=100)
+            output_ids = model.generate(
+                **input_ids,
+                max_new_tokens=100,
+                pad_token_id=tokenizer.eos_token_id
+            )
 
         response_ids = output_ids[0][input_length:]
 
@@ -203,7 +212,8 @@ def generate_response_from_on_server_model(model_name, tokenizer, model, prompt)
                 **inputs,
                 max_new_tokens=100,
                 do_sample=True,
-                return_dict_in_generate=True
+                return_dict_in_generate=True,
+                pad_token_id=tokenizer.eos_token_id
             )
 
         response_ids = outputs.sequences[0, input_length:]
@@ -314,8 +324,10 @@ def explain_single_query_lime(query,
     feature_importance = explanation.as_list()
 
     explanation_json_friendly = {}
-    for label, (feature, weight) in explanation.as_map().items():
-        explanation_json_friendly[label] = (feature, float(weight))
+    for label, tuples_list in explanation.as_map().items():
+        explanation_json_friendly[label] = []
+        for feature, weight in tuples_list:
+            explanation_json_friendly[label].append((feature, float(weight)))
 
     probabilities = classifier([query])[0]
 
