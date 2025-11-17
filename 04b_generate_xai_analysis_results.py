@@ -352,14 +352,12 @@ def aggregate_lime_explanations(explanations) -> Dict:
     }
 
 
-def identify_safety_triggers(explanations, threshold=0.1) -> List[str]:
+def identify_safety_misalignment_triggers(explanations) -> List[str]:
     triggers = []
 
     for exp in explanations:
-        if exp['probability_unsafe'] > 0.5:  # Focus on unsafe cases
-            for feature, importance in exp['feature_importance']:
-                if importance > threshold:  # Positive contribution to unsafe behavior
-                    triggers.append(feature)
+        for feature, importance in exp['feature_importance']:
+            triggers.append(feature)
 
     from collections import Counter
     trigger_counts = Counter(triggers)
@@ -407,13 +405,13 @@ def safety_boundary_analysis(prompts,
             unsafe_explanations.append(explanation)
 
     aggregated = aggregate_lime_explanations(all_explanations)
-    triggers = identify_safety_triggers(unsafe_explanations)
+    triggers = identify_safety_misalignment_triggers(unsafe_explanations)
 
     return {
         'num_queries_analyzed': len(prompts),
         'num_unsafe_cases': len(unsafe_explanations),
         'aggregated_features': aggregated,
-        'safety_triggers': triggers,
+        'safety_misalignment_triggers': triggers,
         'all_explanations': all_explanations
     }
 
