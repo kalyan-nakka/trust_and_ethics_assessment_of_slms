@@ -392,6 +392,8 @@ def safety_boundary_analysis(prompts,
         all_explanations.append(explanation)
         explanation_fig.savefig(f"results/xai/{model_name}/bar_plot_prompt_{p_id}.png")
 
+        p_id += 1
+
         if explanation['probability_unsafe'] > 0.5:
             unsafe_explanations.append(explanation)
 
