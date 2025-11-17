@@ -313,13 +313,17 @@ def explain_single_query_lime(query,
     )
     feature_importance = explanation.as_list()
 
+    explanation_json_friendly = {}
+    for label, (feature, weight) in explanation.as_map().items():
+        explanation_json_friendly[label] = (feature, float(weight))
+
     probabilities = classifier([query])[0]
 
     return {
         'query': query,
         'feature_importance': feature_importance,
         'probability_unsafe': probabilities[1],
-        'explanation': explanation.as_map()
+        'explanation': explanation_json_friendly,
     }, explanation.as_pyplot_figure()
 
 
