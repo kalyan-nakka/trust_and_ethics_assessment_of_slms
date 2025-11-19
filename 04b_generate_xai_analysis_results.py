@@ -1,5 +1,7 @@
 import os
 import json
+import time
+
 import torch
 import argparse
 import warnings
@@ -306,6 +308,8 @@ def create_safety_classifier(model_name,
             else:
                 predictions.append([0.9, 0.1])  # Safe - high probability of class 0
 
+            time.sleep(5)
+
         return np.array(predictions)
 
     return safety_classifier
@@ -411,7 +415,7 @@ def safety_boundary_analysis(prompts,
                              model_name) -> Dict:
 
     on_server_model_tokenizer, on_server_model = load_on_server_model(model_name=model_name)
-    # on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
+    on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
     hb_cls, hb_tokenizer = load_harmbench_jb_classifier()
 
     explainer = LimeTextExplainer(
@@ -420,23 +424,23 @@ def safety_boundary_analysis(prompts,
         random_state=42
     )
 
-    # classifier = create_safety_classifier(
-    #     model_name,
-    #     on_server_model,
-    #     on_server_model_tokenizer,
-    #     on_device_model,
-    #     on_device_model_engine,
-    #     hb_cls,
-    #     hb_tokenizer
-    # )
-
-    classifier = create_safety_classifier_2(
+    classifier = create_safety_classifier(
         model_name,
         on_server_model,
         on_server_model_tokenizer,
+        on_device_model,
+        on_device_model_engine,
         hb_cls,
         hb_tokenizer
     )
+
+    # classifier = create_safety_classifier_2(
+    #     model_name,
+    #     on_server_model,
+    #     on_server_model_tokenizer,
+    #     hb_cls,
+    #     hb_tokenizer
+    # )
 
     all_explanations = []
     unsafe_explanations = []
