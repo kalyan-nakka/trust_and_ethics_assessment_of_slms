@@ -311,6 +311,48 @@ def create_safety_classifier(model_name,
     return safety_classifier
 
 
+def create_safety_classifier_2(model_name,
+                               on_server_model,
+                               on_server_model_tokenizer,
+                               hb_cls,
+                               hb_tokenizer) -> Callable:
+    def safety_classifier_2(texts: List[str]) -> np.ndarray:
+        predictions = []
+
+        for text in tqdm(texts, desc="LIME Prompt Variants"):
+            response_os = generate_response_from_on_server_model(
+                model_name=model_name,
+                tokenizer=on_server_model_tokenizer,
+                model=on_server_model,
+                prompt=text
+            )
+
+            on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
+            response_od = generate_response_from_on_device_model(
+                model=on_device_model,
+                engine=on_device_model_engine,
+                prompt=text
+            )
+            on_device_model_engine.terminate()
+
+            unsafe_os = 1 if is_response_harmful(hb_cls, hb_tokenizer, text, response_os) == "yes" else 0
+            unsafe_od = 1 if is_response_harmful(hb_cls, hb_tokenizer, text, response_od) == "yes" else 0
+
+            # Binary classification:
+            # Class 1: Quantization causes unsafe (unsafe_od and not unsafe_os)
+            # Class 0: Otherwise
+            if unsafe_od and not unsafe_os:
+                predictions.append([0.1, 0.9])  # Unsafe - high probability of class 1
+            elif unsafe_od and unsafe_os:
+                predictions.append([0.5, 0.5])  # Both Unsafe - neutral
+            else:
+                predictions.append([0.9, 0.1])  # Safe - high probability of class 0
+
+        return np.array(predictions)
+
+    return safety_classifier_2
+
+
 def explain_single_query_lime(query,
                               explainer,
                               classifier,
@@ -319,7 +361,7 @@ def explain_single_query_lime(query,
         query,
         classifier,
         num_features=num_features,
-        num_samples=100
+        num_samples=10
     )
 
     feature_importance = explanation.as_list()
@@ -366,25 +408,32 @@ def identify_safety_misalignment_triggers(explanations) -> List[str]:
 
 
 def safety_boundary_analysis(prompts,
-                             model_name,
-                             on_server_model,
-                             on_server_model_tokenizer,
-                             on_device_model,
-                             on_device_model_engine,
-                             hb_cls,
-                             hb_tokenizer) -> Dict:
+                             model_name) -> Dict:
+
+    on_server_model_tokenizer, on_server_model = load_on_server_model(model_name=model_name)
+    # on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
+    hb_cls, hb_tokenizer = load_harmbench_jb_classifier()
+
     explainer = LimeTextExplainer(
         class_names=['safe', 'unsafe_due_to_quantization'],
         split_expression=r'\s+',  # Split on whitespace
         random_state=42
     )
 
-    classifier = create_safety_classifier(
+    # classifier = create_safety_classifier(
+    #     model_name,
+    #     on_server_model,
+    #     on_server_model_tokenizer,
+    #     on_device_model,
+    #     on_device_model_engine,
+    #     hb_cls,
+    #     hb_tokenizer
+    # )
+
+    classifier = create_safety_classifier_2(
         model_name,
         on_server_model,
         on_server_model_tokenizer,
-        on_device_model,
-        on_device_model_engine,
         hb_cls,
         hb_tokenizer
     )
@@ -417,19 +466,10 @@ def safety_boundary_analysis(prompts,
 
 
 def generate_xai_lime_analysis_results(model_name, prompts):
-    on_server_model_tokenizer, on_server_model = load_on_server_model(model_name=model_name)
-    on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
-    hb_cls, hb_tokenizer = load_harmbench_jb_classifier()
 
     return safety_boundary_analysis(
         prompts=prompts,
-        model_name=model_name,
-        on_server_model=on_server_model,
-        on_server_model_tokenizer=on_server_model_tokenizer,
-        on_device_model=on_device_model,
-        on_device_model_engine=on_device_model_engine,
-        hb_cls=hb_cls,
-        hb_tokenizer=hb_tokenizer
+        model_name=model_name
     )
 
 
