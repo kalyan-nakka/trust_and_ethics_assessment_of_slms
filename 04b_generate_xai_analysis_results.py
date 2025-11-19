@@ -333,8 +333,6 @@ def create_safety_classifier(model_name,
             else:
                 predictions.append([0.9, 0.1])  # Safe - high probability of class 0
 
-            time.sleep(5)
-
         return np.array(predictions)
 
     return safety_classifier
