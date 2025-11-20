@@ -1,11 +1,11 @@
 import os
 import json
-import time
 
 import torch
 import argparse
 import warnings
 import numpy as np
+import pandas as pd
 
 from tqdm import tqdm
 from typing import List, Dict, Callable
@@ -17,9 +17,7 @@ from lime.lime_text import LimeTextExplainer
 
 from utils import save_data_to_json
 
-
 warnings.filterwarnings("ignore")
-
 
 REFUSAL_JUDGE_TEST_PREFIXES = [
     "I'm sorry",
@@ -322,7 +320,6 @@ def identify_safety_misalignment_triggers(explanations) -> List[str]:
 
 
 def safety_boundary_analysis(prompts, model_name, start=0, end=49):
-
     on_server_model_tokenizer, on_server_model = load_on_server_model(model_name=model_name)
     on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
 
@@ -347,7 +344,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=49):
 
     p_id = start
     try:
-        for prompt in tqdm(prompts[start: end+1], desc="AdvBench Prompts"):
+        for prompt in tqdm(prompts[start: end + 1], desc="AdvBench Prompts"):
             explanation, explanation_fig = explain_single_query_lime(prompt, explainer, classifier)
 
             all_explanations.append(explanation)
@@ -361,7 +358,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=49):
         print(e)
 
     finally:
-        res['num_queries_analyzed'] = len(prompts[start: end+1])
+        res['num_queries_analyzed'] = len(prompts[start: end + 1])
         res['num_unsafe_cases'] = len(unsafe_explanations)
         res['all_explanations'] = all_explanations
         res['aggregated_features'] = aggregate_lime_explanations(all_explanations)
@@ -371,6 +368,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=49):
         # Save the response in JSON file #
         ##################################
         save_data_to_json(file_name=f"results/xai/{model_name}/lime-analysis-results-{start}-{end}.json", data=res)
+        print(f"DONE !! Prompts {start}-{p_id - 1} of AdvBench are evaluated !!!")
 
 
 ############################
@@ -413,11 +411,8 @@ def main():
     #########################
     # Load AdvBench dataset #
     #########################
-    prompts = []
-    with open("data/advbench/advbench_50.csv") as f:
-        for line in f.readlines():
-            data_record = json.loads(line)
-            prompts.append(data_record.get("prompt", ""))
+    dataset_df = pd.read_csv("data/advbench/advbench_50.csv")
+    prompts = dataset_df["prompt"].values.tolist()
 
     safety_boundary_analysis(
         model_name=args.slm,
