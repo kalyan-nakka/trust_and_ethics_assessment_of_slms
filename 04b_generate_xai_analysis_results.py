@@ -235,12 +235,14 @@ def create_safety_classifier(model_name,
                 model=on_server_model,
                 prompt=text
             )
+            print(f"on-server {model_name} response: {response_os}")
 
             response_od = generate_response_from_on_device_model_2(
                 model=on_device_model,
                 engine=on_device_model_engine,
                 prompt=text
             )
+            print(f"on-device {model_name} response: {response_od}")
 
             unsafe_os = is_response_refused(text=response_os)
             unsafe_od = is_response_refused(text=response_od)
@@ -363,7 +365,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=49):
         # Save the response in JSON file #
         ##################################
         save_data_to_json(file_name=f"results/xai/{model_name}/lime-analysis-results-{start}-{end}.json", data=res)
-        print(f"DONE !! Prompts {start}-{p_id - 1} of AdvBench are evaluated !!!")
+        print(f"DONE !! Prompts {start}-{len(all_explanations)} of AdvBench are evaluated !!!")
 
 
 ############################
