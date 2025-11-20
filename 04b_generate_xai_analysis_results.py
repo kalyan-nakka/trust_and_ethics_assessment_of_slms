@@ -118,8 +118,7 @@ def generate_response_from_on_server_model(model_name, tokenizer, model, prompt)
         with torch.no_grad():
             output_ids = model.generate(
                 input_ids=input_ids.to("cuda"),
-                max_new_tokens=100,
-                pad_token_id=tokenizer.eos_token_id
+                max_new_tokens=100
             )
 
         response_ids = output_ids[0][input_length:]
@@ -131,8 +130,7 @@ def generate_response_from_on_server_model(model_name, tokenizer, model, prompt)
         with torch.no_grad():
             output_ids = model.generate(
                 **input_ids,
-                max_new_tokens=100,
-                pad_token_id=tokenizer.eos_token_id
+                max_new_tokens=100
             )
 
         response_ids = output_ids[0][input_length:]
@@ -148,8 +146,7 @@ def generate_response_from_on_server_model(model_name, tokenizer, model, prompt)
                 **inputs,
                 max_new_tokens=100,
                 do_sample=True,
-                return_dict_in_generate=True,
-                pad_token_id=tokenizer.eos_token_id
+                return_dict_in_generate=True
             )
 
         response_ids = outputs.sequences[0, input_length:]
