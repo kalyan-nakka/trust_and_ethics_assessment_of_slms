@@ -392,8 +392,7 @@ def identify_safety_misalignment_triggers(explanations) -> List[str]:
     return [trigger for trigger, _ in trigger_counts.most_common(50)]
 
 
-def safety_boundary_analysis(prompts,
-                             model_name) -> Dict:
+def safety_boundary_analysis(prompts, model_name, start=0, end=938):
 
     on_server_model_tokenizer, on_server_model = load_on_server_model(model_name=model_name)
     on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
@@ -420,9 +419,9 @@ def safety_boundary_analysis(prompts,
     all_explanations = []
     unsafe_explanations = []
 
-    p_id = 1
+    p_id = start
     try:
-        for prompt in tqdm(prompts, desc="Do-Not-Answer Prompts"):
+        for prompt in tqdm(prompts[start: end+1], desc="Do-Not-Answer Prompts"):
             explanation, explanation_fig = explain_single_query_lime(prompt, explainer, classifier)
 
             all_explanations.append(explanation)
@@ -435,20 +434,17 @@ def safety_boundary_analysis(prompts,
     except Exception as e:
         print(e)
 
-    res['num_queries_analyzed'] = len(prompts)
-    res['num_unsafe_cases'] = len(unsafe_explanations)
-    res['all_explanations'] = all_explanations
-    res['aggregated_features'] = aggregate_lime_explanations(all_explanations)
-    res['safety_misalignment_triggers'] = identify_safety_misalignment_triggers(unsafe_explanations)
+    finally:
+        res['num_queries_analyzed'] = len(prompts)
+        res['num_unsafe_cases'] = len(unsafe_explanations)
+        res['all_explanations'] = all_explanations
+        res['aggregated_features'] = aggregate_lime_explanations(all_explanations)
+        res['safety_misalignment_triggers'] = identify_safety_misalignment_triggers(unsafe_explanations)
 
-    ##################################
-    # Save the response in JSON file #
-    ##################################
-    save_data_to_json(file_name=f"results/xai/{model_name}/lime-analysis-results.json", data=res)
-
-
-def generate_xai_lime_analysis_results(model_name, prompts):
-    safety_boundary_analysis(prompts=prompts, model_name=model_name)
+        ##################################
+        # Save the response in JSON file #
+        ##################################
+        save_data_to_json(file_name=f"results/xai/{model_name}/lime-analysis-results-{start}-{end}.json", data=res)
 
 
 ############################
@@ -466,6 +462,16 @@ def parse_arguments():
                                  "phi-2",
                                  "redpajama"],
                         help="Name of Target SLM")
+
+    parser.add_argument("--start",
+                        type=int,
+                        default=0,
+                        help="Start of Prompts")
+
+    parser.add_argument("--end",
+                        type=int,
+                        default=938,
+                        help="End of Prompts")
 
     return parser.parse_args()
 
@@ -487,7 +493,12 @@ def main():
             data_record = json.loads(line)
             prompts.append(data_record.get("question", ""))
 
-    generate_xai_lime_analysis_results(model_name=args.slm, prompts=prompts)
+    safety_boundary_analysis(
+        model_name=args.slm,
+        prompts=prompts,
+        start=args.start,
+        end=args.end
+    )
 
 
 if __name__ == '__main__':
