@@ -242,14 +242,14 @@ def create_safety_classifier(model_name,
                 model=on_server_model,
                 prompt=text
             )
-            print(f"on-server {model_name} response: {response_os}")
+            assert type(response_os) is str
 
             response_od = generate_response_from_on_device_model_2(
                 model=on_device_model,
                 engine=on_device_model_engine,
                 prompt=text
             )
-            print(f"on-device {model_name} response: {response_od}")
+            assert type(response_od) is str
 
             unsafe_os = is_response_refused(text=response_os)
             unsafe_od = is_response_refused(text=response_od)
