@@ -207,12 +207,19 @@ def generate_response_from_on_device_model_2(model, engine, prompt):
         stream=True
     )
     response_list = []
+    break_flag = False
     for response in responses:
         for choice in response.choices:
+            if len(response_list) == 100:
+                break_flag = True
+                break
+
             response_list.append(choice.delta.content)
 
-            if len(response_list) == 200:
-                return " ".join(response_list)
+        if break_flag:
+            break
+
+    return " ".join(response_list)
 
 
 ###########################
