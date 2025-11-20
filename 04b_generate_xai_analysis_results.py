@@ -81,12 +81,10 @@ def load_on_server_model(model_name):
     elif model_name == "phi-2":
         model = AutoModelForCausalLM.from_pretrained(
             "microsoft/phi-2",
+            device_map="auto",
             torch_dtype="auto",
             trust_remote_code=True)
-        tokenizer = AutoTokenizer.from_pretrained(
-            "microsoft/phi-2",
-            trust_remote_code=True
-        )
+        tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2", trust_remote_code=True)
 
     elif model_name == "redpajama":
         tokenizer = AutoTokenizer.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1")
@@ -124,7 +122,7 @@ def generate_response_from_on_server_model(model_name, tokenizer, model, prompt)
         response_ids = output_ids[0][input_length:]
 
     elif model_name == "phi-2":
-        input_ids = tokenizer(prompt, return_tensors="pt", return_attention_mask=False)
+        input_ids = tokenizer(prompt, return_tensors="pt").to(model.device)
         input_length = len(input_ids[0])
 
         with torch.no_grad():
