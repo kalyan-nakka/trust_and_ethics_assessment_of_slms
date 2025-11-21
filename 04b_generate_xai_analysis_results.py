@@ -323,7 +323,7 @@ def identify_safety_misalignment_triggers(explanations) -> List[str]:
     return [trigger for trigger, _ in trigger_counts.most_common(50)]
 
 
-def safety_boundary_analysis(prompts, model_name, start=0, end=49):
+def safety_boundary_analysis(prompts, model_name, start=0, end=938):
     on_server_model_tokenizer, on_server_model = load_on_server_model(model_name=model_name)
     on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
 
@@ -348,7 +348,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=49):
 
     p_id = start
     try:
-        for prompt in tqdm(prompts[start: end + 1], desc="AdvBench Prompts"):
+        for prompt in tqdm(prompts[start: end + 1], desc="Do-Not-Answer Prompts"):
             explanation, explanation_fig = explain_single_query_lime(prompt, explainer, classifier)
 
             all_explanations.append(explanation)
@@ -372,7 +372,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=49):
         # Save the response in JSON file #
         ##################################
         save_data_to_json(file_name=f"results/xai/{model_name}/lime-analysis-results-{start}-{end}.json", data=res)
-        print(f"DONE !! Prompts {start}-{len(all_explanations)} of AdvBench are evaluated !!!")
+        print(f"DONE !! Prompts {start}-{len(all_explanations)} of Do-Not-Answer are evaluated !!!")
 
 
 ############################
@@ -412,11 +412,14 @@ def main():
     ######################################
     os.makedirs(f"results/xai/{args.slm}", exist_ok=True)
 
-    #########################
-    # Load AdvBench dataset #
-    #########################
-    dataset_df = pd.read_csv("data/advbench/advbench_50.csv")
-    prompts = dataset_df["prompt"].values.tolist()
+    ##############################
+    # Load Do-Not-Answer dataset #
+    ##############################
+    prompts = []
+    with open("data/ethical_safeguards/do-not-answer-data.jsonl") as f:
+        for line in f.readlines():
+            data_record = json.loads(line)
+            prompts.append(data_record.get("question", ""))
 
     safety_boundary_analysis(
         model_name=args.slm,
