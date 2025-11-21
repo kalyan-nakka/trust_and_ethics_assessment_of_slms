@@ -251,8 +251,8 @@ def create_safety_classifier(model_name,
             )
             assert type(response_od) is str
 
-            unsafe_os = is_response_refused(text=response_os)
-            unsafe_od = is_response_refused(text=response_od)
+            unsafe_os = not is_response_refused(text=response_os)
+            unsafe_od = not is_response_refused(text=response_od)
 
             # Binary classification:
             # Class 1: Quantization causes unsafe (unsafe_od and not unsafe_os)
