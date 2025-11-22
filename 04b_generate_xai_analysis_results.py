@@ -447,7 +447,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=938, hb=False):
         # Save the response in JSON file #
         ##################################
         save_data_to_json(file_name=f"results/xai/{model_name}/lime-analysis-results-{start}-{end}.json", data=res)
-        print(f"DONE !! Prompts {start}-{len(all_explanations)} of Do-Not-Answer are evaluated !!!")
+        print(f"DONE !! Prompts {start}-{start + len(all_explanations) - 1} of Do-Not-Answer are evaluated !!!")
 
 
 ############################
@@ -476,6 +476,11 @@ def parse_arguments():
                         default=938,
                         help="End of Prompts")
 
+    parser.add_argument("--hb",
+                        type=int,
+                        default=0,
+                        help="Is HB selected?")
+
     return parser.parse_args()
 
 
@@ -500,7 +505,8 @@ def main():
         model_name=args.slm,
         prompts=prompts,
         start=args.start,
-        end=args.end
+        end=args.end,
+        hb=bool(args.hb)
     )
 
 
