@@ -12,6 +12,7 @@ from typing import List, Dict, Callable
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from mlc_llm import MLCEngine
+from openai import OpenAI
 
 from lime.lime_text import LimeTextExplainer
 
@@ -125,6 +126,16 @@ def load_harmbench_jb_classifier():
         padding_side="left"
     )
     return cls, tokenizer
+
+
+###############################
+# OpenAI Moderation functions #
+###############################
+
+
+def is_response_harmful_openai(client, text):
+    response = client.moderations.create(model="omni-moderation-latest", input=text)
+    return response.results[0].flagged
 
 
 #############################
@@ -295,8 +306,7 @@ def create_safety_classifier(model_name,
                              on_server_model_tokenizer,
                              on_device_model,
                              on_device_model_engine,
-                             hb_cls=None,
-                             hb_tokenizer=None) -> Callable:
+                             open_ai_client=None) -> Callable:
     def safety_classifier(texts: List[str]) -> np.ndarray:
         predictions = []
 
@@ -316,9 +326,9 @@ def create_safety_classifier(model_name,
             )
             assert type(response_od) is str
 
-            if hb_cls and hb_tokenizer:
-                unsafe_os = 1 if is_response_harmful(hb_cls, hb_tokenizer, text, response_os) == "yes" else 0
-                unsafe_od = 1 if is_response_harmful(hb_cls, hb_tokenizer, text, response_od) == "yes" else 0
+            if open_ai_client:
+                unsafe_os = 1 if is_response_harmful_openai(client=open_ai_client, text=response_os) else 0
+                unsafe_od = 1 if is_response_harmful_openai(client=open_ai_client, text=response_od) else 0
             else:
                 unsafe_os = not is_response_refused(text=response_os)
                 unsafe_od = not is_response_refused(text=response_od)
@@ -392,13 +402,13 @@ def identify_safety_misalignment_triggers(explanations) -> List[str]:
     return [trigger for trigger, _ in trigger_counts.most_common(50)]
 
 
-def safety_boundary_analysis(prompts, model_name, start=0, end=938, hb=False):
+def safety_boundary_analysis(prompts, model_name, start=0, end=938, om=False):
     on_server_model_tokenizer, on_server_model = load_on_server_model(model_name=model_name)
     on_device_model_engine, on_device_model = load_on_device_model(model_name=model_name)
-    if hb:
-        hb_cls, hb_tokenizer = load_harmbench_jb_classifier()
+    if om:
+        open_ai_client = OpenAI(api_key="")
     else:
-        hb_cls, hb_tokenizer = None, None
+        open_ai_client = None
 
     res = {}
 
@@ -414,8 +424,7 @@ def safety_boundary_analysis(prompts, model_name, start=0, end=938, hb=False):
         on_server_model_tokenizer,
         on_device_model,
         on_device_model_engine,
-        hb_cls,
-        hb_tokenizer
+        open_ai_client
     )
 
     all_explanations = []
@@ -476,10 +485,10 @@ def parse_arguments():
                         default=938,
                         help="End of Prompts")
 
-    parser.add_argument("--hb",
+    parser.add_argument("--om",
                         type=int,
                         default=0,
-                        help="Is HB selected?")
+                        help="Is OpenAI Moderation selected?")
 
     return parser.parse_args()
 
@@ -506,7 +515,7 @@ def main():
         prompts=prompts,
         start=args.start,
         end=args.end,
-        hb=bool(args.hb)
+        om=bool(args.om)
     )
 
 
