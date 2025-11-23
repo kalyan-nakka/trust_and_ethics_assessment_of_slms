@@ -164,9 +164,9 @@ def load_on_server_model(model_name):
         tokenizer = AutoTokenizer.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1")
         model = AutoModelForCausalLM.from_pretrained(
             "togethercomputer/RedPajama-INCITE-Chat-3B-v1",
-            torch_dtype=torch.float16
+            torch_dtype=torch.float16,
+            device_map="auto",
         )
-        model = model.to('cuda')
 
     else:
         raise NotImplementedError(f"Model '{model_name}' not implemented")
